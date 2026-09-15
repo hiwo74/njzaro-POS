@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite has no native enum support in Prisma, so these are plain strings.
+// Valid values are enforced with zod at the API layer:
+// Role: ADMIN | CASHIER
+// Category: MEN | WOMEN | UNISEX
+// PerfumeType: EDP | EDT | PARFUM | ATTAR | OIL
+// SaleStatus: COMPLETED | REFUNDED
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("CASHIER")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  sales        Sale[]
+}
+
+model Product {
+  id                String     @id @default(cuid())
+  name              String
+  brand             String
+  category          String
+  type              String
+  size              String
+  sku               String?    @unique
+  sellPriceIqd      Float
+  costPriceIqd      Float      @default(0)
+  stock             Int        @default(0)
+  lowStockThreshold Int        @default(3)
+  imageUrl          String?
+  active            Boolean    @default(true)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  saleItems         SaleItem[]
+
+  // Decants are ordinary, independently-sellable Products (own stock/price/SKU,
+  // never linked for stock deduction). sourceProductId is kept only so the
+  // Decants admin screen can group them under the perfume they were poured from.
+  isDecant        Boolean   @default(false)
+  decantMl        Int?
+  sourceProductId String?
+  sourceProduct   Product?  @relation("ProductDecants", fields: [sourceProductId], references: [id], onDelete: SetNull)
+  decants         Product[] @relation("ProductDecants")
+}
+
+model Sale {
+  id           Int        @id @default(autoincrement())
+  cashierId    String
+  cashier      User       @relation(fields: [cashierId], references: [id])
+  subtotalIqd  Float
+  discountIqd  Float      @default(0)
+  totalIqd     Float
+  amountPaid   Float
+  changeGiven  Float
+  status       String     @default("COMPLETED")
+  createdAt    DateTime   @default(now())
+  items        SaleItem[]
+}
+
+model SaleItem {
+  id               String  @id @default(cuid())
+  saleId           Int
+  sale             Sale    @relation(fields: [saleId], references: [id])
+  productId        String
+  product          Product @relation(fields: [productId], references: [id])
+  nameSnapshot     String
+  priceIqdSnapshot Float
+  costIqdSnapshot  Float   @default(0)
+  qty              Int
+  lineTotalIqd     Float
+}
+
+model Setting {
+  key   String @id
+  value String
+}
