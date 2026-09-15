@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dev-dist/
+*.tsbuildinfo
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Database
+server/prisma/dev.db
+server/prisma/dev.db-journal
+server/prisma/migrations/dev.db
+
+# User-uploaded runtime content (product photos, QR codes) — not source code
+server/uploads/
+
+# OS / editor
+.DS_Store
+Thumbs.db
