@@ -4,7 +4,8 @@ import { VitePWA } from "vite-plugin-pwa";
 
 // GitHub Pages project sites are served from /<repo-name>/, not the domain
 // root, so every asset URL and the PWA manifest need that prefix baked in.
-const BASE = "/njzaro-pos/";
+// Case matters here — the actual repo is "njzaro-POS", not lowercase.
+const BASE = "/njzaro-POS/";
 
 export default defineConfig({
   base: BASE,
